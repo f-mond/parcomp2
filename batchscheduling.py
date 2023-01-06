@@ -41,7 +41,7 @@ def read_instance(infile=None):
     
 
 def main():
-    inst = read_instance('instances/student_instance_1.dat')
+    inst = read_instance()
     M = inst.m
     Num_jobs = inst.n
     jobs = inst.jobs
