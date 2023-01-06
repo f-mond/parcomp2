@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ -z {$JUDGE0_VERSION+x} ]; then
+	source ~/.bashrc 1> /dev/null 2> /dev/null
+else
+	source /conda/init 1> /dev/null 2> /dev/null
+fi
+conda activate paralg2 
+
+# use /python/python for Python 3.10
+python3 batchscheduling.py
