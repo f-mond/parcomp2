@@ -65,22 +65,20 @@ def main():
         if currently_free >= jobs[i].machines:
             schedule[i] = [jobs[i].id, current_time]
             currently_free -= jobs[i].machines
-            current_time += 1
-            running.append((jobs[i].id-1, jobs[i].release_time + jobs[i].runtime_act + 1))
+            running.append((jobs[i].id-1, current_time + jobs[i].runtime_act))
         else:
             while(currently_free < jobs[i].machines):
                 temp = running[0]
-                current_time = jobs[temp[0]].release_time + jobs[temp[0]].runtime_act
+                current_time = temp[1]
                 currently_free += jobs[temp[0]].machines
                 running.pop(0)
             schedule[i] = [jobs[i].id, current_time]
             currently_free -= jobs[i].machines
-            current_time += 1
-            running.append((jobs[i].id-1, jobs[i].release_time + jobs[i].runtime_act + 1))
+            running.append((jobs[i].id-1, current_time + jobs[i].runtime_act))
 
         #print('Free: '+ str(currently_free))
         #if currently_free < 0:
-         #   print('RAISE')
+            #print('RAISE')
 
     print(Num_jobs)
     for i in range(Num_jobs):
