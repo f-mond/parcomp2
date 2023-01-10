@@ -38,8 +38,6 @@ def read_instance(infile=None):
     return Instance(p, jobs)
 
 
-    
-
 def main():
     inst = read_instance()
     M = inst.m
@@ -50,28 +48,39 @@ def main():
     schedule = {}
     running = []
     for i in range(Num_jobs):
+        if current_time < jobs[i].release_time:
+            current_time = jobs[i].release_time
         running = sorted(running, key = itemgetter(1))
+        ready_to_delte = 0
         for r in running:
-            if r[1] <= current_time:
+            if r[1] < current_time:
                 currently_free += jobs[r[0]].machines
-                running.remove(r)
+                ready_to_delte += 1
+                #running.remove(r)
             else:
                 break
+        for j in range(ready_to_delte):
+            running.pop(0)
+
         if currently_free >= jobs[i].machines:
-            schedule[i] = [jobs[i].id, jobs[i].release_time]
+            schedule[i] = [jobs[i].id, current_time]
             currently_free -= jobs[i].machines
-            current_time = jobs[i].release_time
-            running.append((jobs[i].id-1, jobs[i].release_time + jobs[i].runtime_act))
+            current_time += 1
+            running.append((jobs[i].id-1, jobs[i].release_time + jobs[i].runtime_act + 1))
         else:
             while(currently_free < jobs[i].machines):
                 temp = running[0]
                 current_time = jobs[temp[0]].release_time + jobs[temp[0]].runtime_act
                 currently_free += jobs[temp[0]].machines
                 running.pop(0)
-            schedule[i] = [jobs[i].id, jobs[i].release_time]
+            schedule[i] = [jobs[i].id, current_time]
             currently_free -= jobs[i].machines
-            current_time = jobs[i].release_time
-            running.append((jobs[i].id-1, jobs[i].release_time + jobs[i].runtime_act))
+            current_time += 1
+            running.append((jobs[i].id-1, jobs[i].release_time + jobs[i].runtime_act + 1))
+
+        #print('Free: '+ str(currently_free))
+        #if currently_free < 0:
+         #   print('RAISE')
 
     print(Num_jobs)
     for i in range(Num_jobs):
