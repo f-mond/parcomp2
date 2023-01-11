@@ -69,11 +69,15 @@ def main():
             currently_free -= jobs[i].machines
             running.append((jobs[i].id-1, current_time + jobs[i].runtime_act, current_time+jobs[i].runtime_req))
         else:
-            
             shadow_time_temp =  sorted(running, key = itemgetter(2), reverse=True)
             free_temp = M
             shadow_time = shadow_time_temp[0][2]
 
+            # check if total number of cores required by backfill jobs is more than the number of machines
+            backfill_cores_required = sum(jobs[j[0]].machines for j in shadow_time_temp)
+            if backfill_cores_required > M:
+                print("Invalid Schedule: Number of available machines is exceeded.")
+                return 
             for cores in shadow_time_temp:
                 if jobs[i].machines >= (free_temp - jobs[cores[0]].machines):
                     break
@@ -81,7 +85,6 @@ def main():
                     free_temp = free_temp - jobs[cores[0]].machines
                     shadow_time = cores[2]
 
-            #print(shadow_time)
             extra_nodes = free_temp - jobs[i].machines
 
             for j in range(i+1, Num_jobs):
@@ -92,7 +95,7 @@ def main():
                         schedule[j] = [jobs[j].id, current_time]
                         currently_free -= jobs[j].machines
                         running.append((jobs[j].id-1, current_time + jobs[j].runtime_act, current_time+jobs[j].runtime_req))
-                        backfill.append(jobs[j].id-1)
+                        backfill.append(j)
                 
                 running = sorted(running, key = itemgetter(1))
                 while True:
@@ -130,14 +133,6 @@ def main():
                 current_time = temp[1]
                 currently_free += jobs[temp[0]].machines
                 running.pop(0)
-
-    """ schedule[i] = [jobs[i].id, current_time]
-            currently_free -= jobs[i].machines
-            running.append((jobs[i].id-1, current_time + jobs[i].runtime_act, current_time+jobs[i].runtime_req))
-            """
-        #print('Free: '+ str(currently_free))
-        #if currently_free < 0:
-            #print('RAISE')
 
     print(Num_jobs)
     for i in range(Num_jobs):

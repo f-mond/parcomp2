@@ -39,16 +39,18 @@ def read_instance(infile=None):
 
 
 def main():
-    inst = read_instance()
+    inst = read_instance('student_instance_2.dat')
     M = inst.m
     Num_jobs = inst.n
     jobs = inst.jobs
     currently_free = M
     current_time = 0
-    #print(jobs[0].release_time)
     schedule = {}
     running = []
+    backfill = []
     for i in range(Num_jobs):
+        if i in backfill:
+            continue
         if current_time < jobs[i].release_time:
             current_time = jobs[i].release_time
         running = sorted(running, key = itemgetter(1))
@@ -65,17 +67,74 @@ def main():
         if currently_free >= jobs[i].machines:
             schedule[i] = [jobs[i].id, current_time]
             currently_free -= jobs[i].machines
-            running.append((jobs[i].id-1, current_time + jobs[i].runtime_act))
+            running.append((jobs[i].id-1, current_time + jobs[i].runtime_act, current_time+jobs[i].runtime_req))
         else:
+            
+            shadow_time_temp =  sorted(running, key = itemgetter(2), reverse=True)
+            free_temp = M
+            shadow_time = shadow_time_temp[0][2]
+
+            for cores in shadow_time_temp:
+                if jobs[i].machines >= (free_temp - jobs[cores[0]].machines):
+                    break
+                else:
+                    free_temp = free_temp - jobs[cores[0]].machines
+                    shadow_time = cores[2]
+
+            #print(shadow_time)
+            extra_nodes = free_temp - jobs[i].machines
+
+            for j in range(i+1, Num_jobs):
+                run_time = current_time + jobs[j].runtime_req
+                if jobs[j].machines <= currently_free:
+                    if (run_time < shadow_time) or jobs[j].machines <= extra_nodes:
+                        current_time = max(current_time, jobs[j].release_time)
+                        schedule[j] = [jobs[j].id, current_time]
+                        currently_free -= jobs[j].machines
+                        running.append((jobs[j].id-1, current_time + jobs[j].runtime_act, current_time+jobs[j].runtime_req))
+                        backfill.append(jobs[j].id-1)
+                
+                running = sorted(running, key = itemgetter(1))
+                while True:
+                    if len(running) == 0:
+                        break
+                    if current_time <= running[0][1]:
+                        break
+                    else:
+                        currently_free += jobs[running[0][0]].machines
+                        running.pop(0)
+
+                while(currently_free < jobs[i].machines):
+                    temp = running[0]
+                    current_time = temp[1]
+                    currently_free += jobs[temp[0]].machines
+                    running.pop(0)
+                if currently_free >= jobs[i].machines:
+                    schedule[i] = [jobs[i].id, current_time]
+                    currently_free -= jobs[i].machines
+                    running.append((jobs[i].id-1, current_time + jobs[i].runtime_act, current_time+jobs[i].runtime_req))
+                    break
+
+            if i == Num_jobs-1:
+                while(currently_free < jobs[i].machines):
+                    temp = running[0]
+                    current_time = temp[1]
+                    currently_free += jobs[temp[0]].machines
+                    running.pop(0)
+                schedule[i] = [jobs[i].id, current_time]
+                currently_free -= jobs[i].machines
+                running.append((jobs[i].id-1, current_time + jobs[i].runtime_act, current_time+jobs[i].runtime_req))
+
             while(currently_free < jobs[i].machines):
                 temp = running[0]
                 current_time = temp[1]
                 currently_free += jobs[temp[0]].machines
                 running.pop(0)
-            schedule[i] = [jobs[i].id, current_time]
-            currently_free -= jobs[i].machines
-            running.append((jobs[i].id-1, current_time + jobs[i].runtime_act))
 
+    """ schedule[i] = [jobs[i].id, current_time]
+            currently_free -= jobs[i].machines
+            running.append((jobs[i].id-1, current_time + jobs[i].runtime_act, current_time+jobs[i].runtime_req))
+            """
         #print('Free: '+ str(currently_free))
         #if currently_free < 0:
             #print('RAISE')
