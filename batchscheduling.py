@@ -39,12 +39,13 @@ def read_instance(infile=None):
 
 
 def main():
-    inst = read_instance()
+    inst = read_instance('student_instance_1.dat')
     M = inst.m
     Num_jobs = inst.n
     jobs = inst.jobs
     currently_free = M
     current_time = 0
+    #print(jobs[0].release_time)
     schedule = {}
     running = []
     for i in range(Num_jobs):
@@ -56,7 +57,6 @@ def main():
             if r[1] < current_time:
                 currently_free += jobs[r[0]].machines
                 ready_to_delte += 1
-                #running.remove(r)
             else:
                 break
         for j in range(ready_to_delte):
